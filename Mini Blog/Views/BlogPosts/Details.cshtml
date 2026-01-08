@@ -1,0 +1,63 @@
+﻿@model MiniBlog.Models.BlogPost
+
+<div class="container mt-4">
+    <h1 class="mb-3">@Model.Title</h1>
+
+    <p class="text-muted">
+        Posted on @Model.CreatedAt.ToString("MMMM dd, yyyy")
+    </p>
+
+    <hr />
+
+    <div class="mt-4">
+        <p style="white-space: pre-line;">
+            @Model.Content
+        </p>
+    </div>
+
+    <hr />
+
+    <a asp-action="Index" class="btn btn-secondary mt-3">
+        ← Back to Post
+    </a>
+</div>
+<h3 class="mt-5">Comments</h3>
+
+@if (Model.Comments.Any())
+{
+    @foreach (var comment in Model.Comments.OrderByDescending(c => c.CreatedAt))
+    {
+        <div class="border rounded p-2 mb-2">
+            <strong>@comment.AuthorName</strong>
+            <small class="text-muted">
+                (@comment.CreatedAt.ToString("g"))
+            </small>
+            <p>@comment.Content</p>
+        </div>
+    }
+}
+else
+{
+    <p>No comments yet. Be the first!</p>
+}
+<h4 class="mt-4">Leave a Comment</h4>
+
+<form asp-controller="Comments" asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" name="BlogPostId" value="@Model.Id" />
+
+    <div class="mb-2">
+        <label>Name</label>
+        <input name="AuthorName" class="form-control" required />
+    </div>
+
+    <div class="mb-2">
+        <label>Comment</label>
+        <textarea name="Content" class="form-control" rows="3" required></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Post Comment
+    </button>
+</form>

@@ -1,0 +1,40 @@
+﻿@model IEnumerable<MiniBlog.Models.BlogPost>
+
+<h1>Blog Posts</h1>
+
+<p>
+    <a asp-controller="BlogPosts" asp-action="Create" class="btn btn-success">Create New Post</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Created At</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var post in Model ?? Enumerable.Empty<MiniBlog.Models.BlogPost>())
+        {
+            <tr>
+                <td>@post.Title</td>
+                <td>@post.CreatedAt.ToShortDateString()</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@post.Id" class="btn btn-primary">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@post.Id" class="btn btn-danger">Delete</a>
+                    <p>
+                        <a asp-controller="BlogPosts" asp-action="Create" class="btn btn-success">Create New Post</a>
+                    </p>
+
+                </td>
+            </tr>
+        <td>
+            <a asp-action="Details" asp-route-id="@post.Id">
+                @post.Title
+            </a>
+        </td>
+
+        }
+    </tbody>
+</table>

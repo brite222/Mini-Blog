@@ -1,0 +1,33 @@
+﻿@model IEnumerable<MiniBlog.Models.BlogPost>
+
+<h2>Latest Blog Posts</h2>
+
+@foreach (var post in Model)
+{
+    <div class="mb-4 p-3 border rounded">
+        <h3>
+            <a asp-controller="BlogPosts"
+               asp-action="Details"
+               asp-route-id="@post.Id">
+                @post.Title
+            </a>
+        </h3>
+
+        <p class="text-muted">
+            @post.CreatedAt.ToString("MMMM dd, yyyy")
+        </p>
+
+        <p>
+            @(post.Content.Length > 150
+                    ? post.Content.Substring(0, 150) + "..."
+                    : post.Content)
+    </p>
+
+        <a asp-controller="BlogPosts"
+           asp-action="Details"
+           asp-route-id="@post.Id"
+           class="btn btn-sm btn-primary">
+            Read More →
+        </a>
+    </div>
+}
