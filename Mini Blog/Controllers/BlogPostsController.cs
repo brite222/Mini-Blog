@@ -15,62 +15,162 @@ namespace MiniBlog.Controllers
             _context = context;
         }
 
-        // GET: /BlogPosts
+        // =========================
+        // INDEX (PUBLIC)
+        // =========================
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-            var posts = await _context.BlogPosts.ToListAsync();
+            var posts = await _context.BlogPosts
+                .Include(p => p.Category)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+
             return View(posts);
         }
 
-        // GET: /BlogPosts/Create
+        // =========================
+        // DETAILS (PUBLIC)
+        // =========================
+        [AllowAnonymous]
+        public async Task<IActionResult> Details(int id)
+        {
+            var post = await _context.BlogPosts
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (post == null)
+                return NotFound();
+
+            return View(post);
+        }
+
+        // =========================
+        // CREATE (ADMIN ONLY)
+        // =========================
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BlogPost post)
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(post);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(post);
+            if (!ModelState.IsValid)
+                return View(post);
+
+            post.CreatedAt = DateTime.UtcNow;
+
+            _context.BlogPosts.Add(post);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: /BlogPosts/Edit/5
+        // =========================
+        // EDIT (ADMIN ONLY)
+        // =========================
+        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id)
         {
-            var post = await _context.BlogPosts.FindAsync(id);
-            if (post == null) return NotFound();
+            var post = await _context.BlogPosts
+                .Include(p => p.BlogPostTags)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (post == null)
+                return NotFound();
+
+            ViewBag.Categories = await _context.Categories.ToListAsync();
+            ViewBag.Tags = await _context.Tags.ToListAsync();
+            ViewBag.SelectedTags = post.BlogPostTags
+                .Select(bt => bt.TagId)
+                .ToArray();
+
             return View(post);
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(BlogPost post)
+        public async Task<IActionResult> Edit(
+    int id,
+    BlogPost post,
+    int[] TagIds,
+    IFormFile? ImageFile)
         {
-            if (ModelState.IsValid)
+            if (id != post.Id)
+                return NotFound();
+
+            if (!ModelState.IsValid)
             {
-                _context.Update(post);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                // 🔥 THIS FIXES THE CRASH
+                ViewBag.Categories = await _context.Categories.ToListAsync();
+                ViewBag.Tags = await _context.Tags.ToListAsync();
+                ViewBag.SelectedTags = TagIds ?? Array.Empty<int>();
+
+                return View(post);
             }
-            return View(post);
+
+            var existingPost = await _context.BlogPosts
+                .Include(p => p.BlogPostTags)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (existingPost == null)
+                return NotFound();
+
+            existingPost.Title = post.Title;
+            existingPost.Content = post.Content;
+            existingPost.CategoryId = post.CategoryId;
+
+            if (ImageFile != null && ImageFile.Length > 0)
+            {
+                var uploads = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot/uploads");
+
+                Directory.CreateDirectory(uploads);
+
+                var fileName = Guid.NewGuid() + Path.GetExtension(ImageFile.FileName);
+                var filePath = Path.Combine(uploads, fileName);
+
+                using var stream = new FileStream(filePath, FileMode.Create);
+                await ImageFile.CopyToAsync(stream);
+
+                existingPost.ImageUrl = "/uploads/" + fileName;
+            }
+
+            existingPost.BlogPostTags.Clear();
+            if (TagIds != null)
+            {
+                foreach (var tagId in TagIds)
+                {
+                    existingPost.BlogPostTags.Add(new BlogPostTag
+                    {
+                        BlogPostId = existingPost.Id,
+                        TagId = tagId
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: /BlogPosts/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
             var post = await _context.BlogPosts.FindAsync(id);
-            if (post == null) return NotFound();
+            if (post == null)
+                return NotFound();
+
             return View(post);
         }
 
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
@@ -80,22 +180,8 @@ namespace MiniBlog.Controllers
                 _context.BlogPosts.Remove(post);
                 await _context.SaveChangesAsync();
             }
+
             return RedirectToAction(nameof(Index));
         }
-
-        // GET: BlogPosts/Details/5
-       
-        
-        public async Task<IActionResult> Details(int id)
-        {
-            var post = await _context.BlogPosts
-                                     .Include(p => p.Comments)
-                                     .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (post == null) return NotFound();
-
-            return View(post);
-        }
-
     }
 }

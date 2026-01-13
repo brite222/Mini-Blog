@@ -1,0 +1,15 @@
+﻿@model ApplicationUser
+
+<h3>My Profile</h3>
+
+@if (!string.IsNullOrEmpty(Model.AvatarUrl))
+{
+    <img src="@Model.AvatarUrl"
+         class="rounded-circle mb-3"
+         style="width:120px;height:120px;object-fit:cover;" />
+}
+
+<form asp-action="UploadAvatar" method="post" enctype="multipart/form-data">
+    <input type="file" name="avatar" class="form-control mb-2" />
+    <button class="btn btn-primary">Upload Avatar</button>
+</form>

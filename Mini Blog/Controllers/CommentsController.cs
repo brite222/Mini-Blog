@@ -44,5 +44,24 @@ namespace MiniBlog.Controllers
                 new { id = comment.BlogPostId }
             );
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id, int blogPostId)
+        {
+            var comment = await _context.Comments.FindAsync(id);
+
+            if (comment != null)
+            {
+                _context.Comments.Remove(comment);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(
+                "Details",
+                "BlogPosts",
+                new { id = blogPostId }
+            );
+        }
+
     }
 }
