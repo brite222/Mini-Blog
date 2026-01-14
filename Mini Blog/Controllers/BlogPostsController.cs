@@ -49,26 +49,70 @@ namespace MiniBlog.Controllers
         // CREATE (ADMIN ONLY)
         // =========================
         [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
+            ViewBag.Categories = _context.Categories.ToList();
+            ViewBag.Tags = _context.Tags.ToList();
             return View();
         }
+
+
+
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(BlogPost post)
+        public async Task<IActionResult> Create(
+    BlogPost post,
+    int[] TagIds,
+    IFormFile? ImageFile)
         {
             if (!ModelState.IsValid)
+            {
+                ViewBag.Categories = _context.Categories.ToList();
+                ViewBag.Tags = _context.Tags.ToList();
                 return View(post);
+            }
 
             post.CreatedAt = DateTime.UtcNow;
+
+            // IMAGE UPLOAD
+            if (ImageFile != null && ImageFile.Length > 0)
+            {
+                var uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+                Directory.CreateDirectory(uploads);
+
+                var fileName = Guid.NewGuid() + Path.GetExtension(ImageFile.FileName);
+                var filePath = Path.Combine(uploads, fileName);
+
+                using var stream = new FileStream(filePath, FileMode.Create);
+                await ImageFile.CopyToAsync(stream);
+
+                post.ImageUrl = "/uploads/" + fileName;
+            }
+
+            // TAGS
+            post.BlogPostTags = new List<BlogPostTag>();
+            foreach (var tagId in TagIds)
+            {
+                post.BlogPostTags.Add(new BlogPostTag
+                {
+                    TagId = tagId
+                });
+            }
 
             _context.BlogPosts.Add(post);
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
+
+
+
 
         // =========================
         // EDIT (ADMIN ONLY)

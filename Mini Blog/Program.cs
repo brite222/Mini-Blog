@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Authorization;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MiniBlog.Data;
 using MiniBlog.Models;
@@ -10,19 +8,18 @@ var builder = WebApplication.CreateBuilder(args);
 // =========================
 // DATABASE
 // =========================
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-    ));
+    options.UseSqlite(connectionString)
+);
 
 // =========================
-// IDENTITY + ROLES (ApplicationUser for Avatar support)
+// IDENTITY
 // =========================
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
         options.SignIn.RequireConfirmedAccount = false;
-
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;
         options.Password.RequireUppercase = true;
@@ -33,21 +30,13 @@ builder.Services
     .AddDefaultTokenProviders();
 
 // =========================
-// GLOBAL AUTHORIZATION (DENY BY DEFAULT)
+// MVC + RAZOR PAGES
 // =========================
-builder.Services.AddControllersWithViews(options =>
-{
-    var policy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
-
-    options.Filters.Add(new AuthorizeFilter(policy));
-});
-
+builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
 // =========================
-// COOKIE SETTINGS
+// COOKIE
 // =========================
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -55,9 +44,6 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 });
 
-// =========================
-// BUILD APP
-// =========================
 var app = builder.Build();
 
 // =========================
@@ -65,9 +51,16 @@ var app = builder.Build();
 // =========================
 using (var scope = app.Services.CreateScope())
 {
-    await DbInitializer.SeedRolesAsync(scope.ServiceProvider);
-    await DbInitializer.SeedAdminAsync(scope.ServiceProvider);
+    var services = scope.ServiceProvider;
+
+    await DbInitializer.SeedRolesAsync(services);
+    await DbInitializer.SeedAdminAsync(services);
+
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    context.Database.Migrate();
+    ApplicationDbContext.SeedData(context);
 }
+
 
 // =========================
 // MIDDLEWARE
@@ -80,9 +73,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthentication();
 app.UseAuthorization();
 

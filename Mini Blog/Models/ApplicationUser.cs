@@ -5,5 +5,7 @@ namespace MiniBlog.Models
     public class ApplicationUser : IdentityUser
     {
         public string? AvatarUrl { get; set; }
+
+        public DateTime LastSeen { get; set; }
     }
 }

@@ -1,40 +1,26 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using MiniBlog.Models
-@inject SignInManager<ApplicationUser> SignInManager
-@inject UserManager<ApplicationUser> UserManager
 
 <ul class="navbar-nav ms-auto align-items-center gap-2">
 
-    @if (SignInManager.IsSignedIn(User))
+    @if (User?.Identity?.IsAuthenticated == true)
     {
-        <li class="nav-item">
+        <li class="nav-item d-flex align-items-center gap-2">
+
             <span class="nav-link text-muted">
-                Hello, @User.Identity?.Name
+                Hello, @User.Identity.Name
             </span>
-        </li>
 
-        @* Admin shortcut *@
-        @if (User.IsInRole("Admin"))
-        {
-            <li class="nav-item">
-                <a class="nav-link fw-semibold"
-                   asp-controller="Admin"
-                   asp-action="Dashboard">
-                    Admin
-                </a>
-            </li>
-        }
-
-        <li class="nav-item">
             <form asp-area="Identity"
                   asp-page="/Account/Logout"
                   method="post"
-                  onsubmit="return confirm('Are you sure you want to log out?');">
+                  class="ms-2">
                 <button type="submit"
                         class="btn btn-sm btn-outline-danger">
                     Logout
                 </button>
             </form>
+
         </li>
     }
     else

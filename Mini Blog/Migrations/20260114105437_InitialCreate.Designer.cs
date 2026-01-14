@@ -11,7 +11,7 @@ using MiniBlog.Data;
 namespace Mini_Blog.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260113153047_InitialCreate")]
+    [Migration("20260114105437_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -169,6 +169,9 @@ namespace Mini_Blog.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastSeen")
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("INTEGER");

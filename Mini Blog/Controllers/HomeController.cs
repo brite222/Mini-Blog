@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MiniBlog.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MiniBlog.Controllers
 {
@@ -13,11 +14,13 @@ namespace MiniBlog.Controllers
         {
             _context = context;
         }
+
+       
         public async Task<IActionResult> Index(
-    string? search,
-    int? categoryId,
-    int? tagId,
-    int page = 1)
+        string? search,
+        int? categoryId,
+        int? tagId,
+        int page = 1)
         {
             const int PageSize = 6;
 

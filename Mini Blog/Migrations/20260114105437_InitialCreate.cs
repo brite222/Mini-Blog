@@ -31,6 +31,7 @@ namespace Mini_Blog.Migrations
                 {
                     Id = table.Column<string>(type: "TEXT", nullable: false),
                     AvatarUrl = table.Column<string>(type: "TEXT", nullable: true),
+                    LastSeen = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),

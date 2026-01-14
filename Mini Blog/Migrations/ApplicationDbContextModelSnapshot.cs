@@ -167,6 +167,9 @@ namespace Mini_Blog.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("LastSeen")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("INTEGER");
 

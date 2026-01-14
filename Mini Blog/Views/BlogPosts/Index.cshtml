@@ -1,67 +1,76 @@
 ﻿@model IEnumerable<MiniBlog.Models.BlogPost>
-@using Microsoft.AspNetCore.Identity
-@inject SignInManager<ApplicationUser> SignInManager
+@using MiniBlog.Models
 
-@foreach (var post in Model)
+<h2 class="mb-4">Blog Posts</h2>
+
+@if (User.IsInRole("Admin"))
 {
-    <div class="card mb-4 shadow-sm">
+    <div class="mb-4">
+        <a class="btn btn-success"
+           asp-controller="BlogPosts"
+           asp-action="Create">
+            + Create Blog Post
+        </a>
+    </div>
+}
 
-        @* IMAGE MUST BE INSIDE THE LOOP *@
-        @if (!string.IsNullOrEmpty(post.ImageUrl))
-        {
-            <img src="@post.ImageUrl"
-                 class="card-img-top"
-                 alt="Post image" />
-        }
+@if (!Model.Any())
+{
+    <p class="text-muted">No blog posts yet.</p>
+}
+else
+{
+    @foreach (var post in Model)
+    {
+        <div class="card mb-4 shadow-sm">
 
-        <h2 class="mb-4">Blog Posts</h2>
+            @if (!string.IsNullOrEmpty(post.ImageUrl))
+            {
+                <img src="@post.ImageUrl"
+                     class="card-img-top"
+                     alt="Post image" />
+            }
 
-        @if (SignInManager.IsSignedIn(User))
-        {
-            <a class="btn btn-primary mb-4" asp-action="Create">
-                + Add Post
-            </a>
-        }
+        <div class="card-body">
 
-    <div class="card-body">
+            <h4 class="card-title">
+                <a asp-action="Details"
+                   asp-route-id="@post.Id">
+                    @post.Title
+                </a>
+            </h4>
 
-        <h4 class="card-title">
-            <a asp-action="Details"
-               asp-route-id="@post.Id">
-                @post.Title
-            </a>
-        </h4>
+            <small class="text-muted">
+                @post.CreatedAt.ToString("MMMM dd, yyyy")
+            </small>
 
-        <small class="text-muted">
-            @post.CreatedAt.ToString("MMMM dd, yyyy")
-        </small>
-
-        <p class="mt-3">
-            @(post.Content.Length > 150
-                        ? post.Content.Substring(0, 150) + "..."
-                        : post.Content)
+            <p class="mt-3">
+                @(post.Content.Length > 150
+                            ? post.Content.Substring(0, 150) + "..."
+                            : post.Content)
         </p>
 
-            <a class="btn btn-info"
-               asp-action="Details"
-               asp-route-id="@post.Id">
-                Read More →
-            </a>
-
-        @if (SignInManager.IsSignedIn(User))
-            {
-                <a class="btn btn-warning ms-2"
-                   asp-action="Edit"
+                <a class="btn btn-info"
+                   asp-action="Details"
                    asp-route-id="@post.Id">
-                    Edit
+                    Read More →
                 </a>
 
-                <a class="btn btn-danger ms-2"
-                   asp-action="Delete"
-                   asp-route-id="@post.Id">
-                    Delete
-                </a>
-            }
+        @if (User.IsInRole("Admin"))
+                {
+                    <a class="btn btn-warning ms-2"
+                       asp-action="Edit"
+                       asp-route-id="@post.Id">
+                        Edit
+                    </a>
+
+                    <a class="btn btn-danger ms-2"
+                       asp-action="Delete"
+                       asp-route-id="@post.Id">
+                        Delete
+                    </a>
+                }
+            </div>
         </div>
-    </div>
+    }
 }
