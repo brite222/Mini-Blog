@@ -4,59 +4,48 @@
     ViewData["Title"] = "Register";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-        <div class="card shadow-sm border-0">
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow-lg border-0">
             <div class="card-body p-4">
 
-                <h3 class="text-center mb-3">Create Account 🚀</h3>
-                <p class="text-center text-muted mb-4">
-                    Join Mini Blog today
-                </p>
-
-                @if (!ViewData.ModelState.IsValid)
-                {
-                    <div class="alert alert-danger">
-                        Please fix the errors below.
-                    </div>
-                }
+                <h3 class="text-center mb-4 fw-bold">
+                    ✨ Create Your Account
+                </h3>
 
                 <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
                     <div class="mb-3">
                         <label asp-for="Input.Email" class="form-label"></label>
-                        <input asp-for="Input.Email" class="form-control form-control-lg" />
+                        <input asp-for="Input.Email" class="form-control" />
                         <span asp-validation-for="Input.Email" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="Input.Password" class="form-label"></label>
-                        <input asp-for="Input.Password" class="form-control form-control-lg" />
+                        <input asp-for="Input.Password" class="form-control" />
                         <span asp-validation-for="Input.Password" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="Input.ConfirmPassword" class="form-label"></label>
-                        <input asp-for="Input.ConfirmPassword" class="form-control form-control-lg" />
+                        <input asp-for="Input.ConfirmPassword" class="form-control" />
                         <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
                     </div>
 
-                    <button type="submit" class="btn btn-success btn-lg w-100">
+                    <button type="submit" class="btn btn-success w-100">
                         Register
                     </button>
                 </form>
 
-                <div class="text-center mt-3">
-                    <small>
-                        Already have an account?
-                        <a href="/Identity/Account/Login">Log in</a>
-                    </small>
+                <hr />
+
+                <div class="text-center">
+                    <a asp-page="./Login">Already have an account?</a>
                 </div>
 
             </div>
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

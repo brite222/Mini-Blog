@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MiniBlog.Models;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace MiniBlog.Areas.Identity.Pages.Account
 {
@@ -26,23 +27,34 @@ namespace MiniBlog.Areas.Identity.Pages.Account
 
         public void OnGet() { }
 
-        public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
-            if (!ModelState.IsValid)
-                return Page();
+            returnUrl ??= Url.Content("~/");
 
             var result = await _signInManager.PasswordSignInAsync(
                 Input.Email,
                 Input.Password,
                 Input.RememberMe,
-                lockoutOnFailure: false);
+                lockoutOnFailure: false
+            );
 
             if (result.Succeeded)
-                return RedirectToPage("/Index", new { area = "" });
+            {
+                HttpContext.Session.SetString("ShowLoginAd", "true");
+                return LocalRedirect(returnUrl);
+            }
+
+            if (result.IsLockedOut)
+            {
+                return RedirectToPage("./Lockout");
+            }
 
             ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             return Page();
         }
+
+
+
 
         public class InputModel
         {
