@@ -1,4 +1,5 @@
 ﻿@model MiniBlog.Models.BlogPost
+@using System.Security.Claims
 
 @{
     ViewData["Title"] = Model.Title;
@@ -6,6 +7,7 @@
 
 <div class="container mt-4">
 
+    <!-- ADMIN ACTIONS -->
     @if (User.IsInRole("Admin"))
     {
         <div class="mb-3">
@@ -51,31 +53,30 @@
                 </span>
             }
 
-            @if (Model.BlogPostTags.Any())
+            @if (Model.BlogPostTags?.Any() == true)
             {
-                foreach (var tag in Model.BlogPostTags)
+                @foreach (var tag in Model.BlogPostTags)
                 {
                     <span class="badge bg-secondary me-1">
                         #@tag.Tag.Name
                     </span>
                 }
             }
-
         </div>
     </div>
 
     <!-- LIKES -->
     <div class="card shadow-sm mb-4">
-        <div class="card-body d-flex align-items-center justify-content-between">
-            <h5 class="mb-0">❤️ Likes: @ViewBag.TotalLikes</h5>
+        <div class="card-body d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                ❤️ Likes: @ViewBag.TotalLikes
+            </h5>
 
             @if (User.Identity?.IsAuthenticated == true)
             {
-                <form asp-controller="Likes"
-                      asp-action="Like"
-                      method="post">
+                <form asp-action="ToggleLike" method="post">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="blogPostId" value="@Model.Id" />
+                    <input type="hidden" name="postId" value="@Model.Id" />
                     <button class="btn btn-outline-danger">
                         ❤️ Like / Unlike
                     </button>
@@ -95,14 +96,18 @@
     <!-- COMMENTS -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <h4 class="mb-3">💬 Comments (@Model.Comments.Count)</h4>
+
+            <h4 class="mb-3">
+                💬 Comments (@Model.Comments.Count)
+            </h4>
 
             @if (Model.Comments.Any())
             {
-                foreach (var comment in Model.Comments.OrderByDescending(c => c.CreatedAt))
+                @foreach (var comment in Model.Comments
+                            .OrderByDescending(c => c.CreatedAt))
                 {
                     <div class="border rounded p-3 mb-3">
-                        <strong>@comment.AuthorName</strong>
+                        <strong>@comment.User?.Email</strong>
                         <small class="text-muted ms-2">
                             @comment.CreatedAt.ToString("MMM dd, yyyy HH:mm")
                         </small>
@@ -134,15 +139,14 @@
             <!-- ADD COMMENT -->
             @if (User.Identity?.IsAuthenticated == true)
             {
-                <form asp-controller="Comments"
-                      asp-action="Create"
+                <form asp-action="AddComment"
                       method="post"
                       class="mt-4">
                     @Html.AntiForgeryToken()
 
-                    <input type="hidden" name="BlogPostId" value="@Model.Id" />
+                    <input type="hidden" name="postId" value="@Model.Id" />
 
-                    <textarea name="Content"
+                    <textarea name="content"
                           class="form-control mb-2"
                           rows="3"
                           placeholder="Write a comment..."

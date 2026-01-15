@@ -1,14 +1,25 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using MiniBlog.Models
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 
 <ul class="navbar-nav ms-auto align-items-center gap-2">
 
-    @if (User?.Identity?.IsAuthenticated == true)
+    @if (SignInManager.IsSignedIn(User))
     {
+        var user = UserManager.GetUserAsync(User).Result;
+        var avatar = user?.AvatarUrl ?? "/avatars/default.png";
+
         <li class="nav-item d-flex align-items-center gap-2">
 
+            <img src="@avatar"
+                 alt="Avatar"
+                 width="32"
+                 height="32"
+                 class="rounded-circle border" />
+
             <span class="nav-link text-muted">
-                Hello, @User.Identity.Name
+                @user!.Email
             </span>
 
             <form asp-area="Identity"

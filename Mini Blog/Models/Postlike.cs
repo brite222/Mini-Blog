@@ -6,13 +6,10 @@ namespace MiniBlog.Models
     {
         public int Id { get; set; }
 
-        // Which post was liked
-        [Required]
         public int BlogPostId { get; set; }
-        public BlogPost BlogPost { get; set; } = null!;
+        public BlogPost BlogPost { get; set; }
 
-        // Who liked
-        [Required]
-        public string UserId { get; set; } = string.Empty;
+        public string UserId { get; set; }
+        public ApplicationUser User { get; set; }
     }
 }

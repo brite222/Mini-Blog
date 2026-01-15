@@ -1,67 +1,49 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MiniBlog.Data;
 using MiniBlog.Models;
-using System.Security.Claims;
 
-namespace MiniBlog.Controllers
+[Authorize]
+public class CommentsController : Controller
 {
-    public class CommentsController : Controller
+    private readonly ApplicationDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
+
+    public CommentsController(
+        ApplicationDbContext context,
+        UserManager<ApplicationUser> userManager)
     {
-        private readonly ApplicationDbContext _context;
+        _context = context;
+        _userManager = userManager;
+    }
 
-        public CommentsController(ApplicationDbContext context)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(int blogPostId, string content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return RedirectToAction("Details", "BlogPosts", new { id = blogPostId });
+
+        var userId = _userManager.GetUserId(User);
+
+        if (userId == null)
+            return Unauthorized();
+
+        var comment = new Comment
         {
-            _context = context;
-        }
+            BlogPostId = blogPostId,
+            Content = content,
+            CreatedAt = DateTime.UtcNow,
+            UserId = userId
+        };
 
-        // CREATE COMMENT
-        [Authorize]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Comment comment)
-        {
-            if (!ModelState.IsValid)
-            {
-                return RedirectToAction(
-                    "Details",
-                    "BlogPosts",
-                    new { id = comment.BlogPostId }
-                );
-            }
+        _context.Comments.Add(comment);
+        await _context.SaveChangesAsync();
 
-            comment.CreatedAt = DateTime.Now;
-
-            // Get logged-in user's email or name
-            comment.AuthorName = User.Identity?.Name ?? "Anonymous";
-
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(
-                "Details",
-                "BlogPosts",
-                new { id = comment.BlogPostId }
-            );
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id, int blogPostId)
-        {
-            var comment = await _context.Comments.FindAsync(id);
-
-            if (comment != null)
-            {
-                _context.Comments.Remove(comment);
-                await _context.SaveChangesAsync();
-            }
-
-            return RedirectToAction(
-                "Details",
-                "BlogPosts",
-                new { id = blogPostId }
-            );
-        }
-
+        return RedirectToAction(
+            "Details",
+            "BlogPosts",
+            new { id = blogPostId });
     }
 }

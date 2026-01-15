@@ -1,49 +1,57 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MiniBlog.Data;
 using MiniBlog.Models;
-using Microsoft.EntityFrameworkCore;
 
-namespace MiniBlog.Controllers
+[Authorize]
+public class LikesController : Controller
 {
-    [Authorize]
-    public class LikesController : Controller
+    private readonly ApplicationDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
+
+    public LikesController(
+        ApplicationDbContext context,
+        UserManager<ApplicationUser> userManager)
     {
-        private readonly ApplicationDbContext _context;
+        _context = context;
+        _userManager = userManager;
+    }
 
-        public LikesController(ApplicationDbContext context)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Like(int blogPostId)
+    {
+        var userId = _userManager.GetUserId(User);
+
+        if (userId == null)
+            return Unauthorized();
+
+        var existingLike = _context.PostLikes
+            .FirstOrDefault(l =>
+                l.BlogPostId == blogPostId &&
+                l.UserId == userId);
+
+        if (existingLike != null)
         {
-            _context = context;
+            // Unlike
+            _context.PostLikes.Remove(existingLike);
+        }
+        else
+        {
+            // Like
+            _context.PostLikes.Add(new PostLike
+            {
+                BlogPostId = blogPostId,
+                UserId = userId
+            });
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        
-        public async Task<IActionResult> Like(int blogPostId)
+        await _context.SaveChangesAsync();
 
-        {
-            var userId = User.Identity!.Name!;
-            var existingLike = await _context.PostLikes
-                .FirstOrDefaultAsync(l => l.BlogPostId == blogPostId && l.UserId == userId);
-
-            if (existingLike != null)
-            {
-                // Remove like
-                _context.PostLikes.Remove(existingLike);
-            }
-            else
-            {
-                // Add like
-                var like = new PostLike
-                {
-                    BlogPostId = blogPostId,
-                    UserId = userId
-                };
-                _context.PostLikes.Add(like);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction("Details", "BlogPosts", new { id = blogPostId });
-        }
+        return RedirectToAction(
+            "Details",
+            "BlogPosts",
+            new { id = blogPostId });
     }
 }

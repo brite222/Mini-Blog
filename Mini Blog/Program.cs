@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // DATABASE
 // =========================
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString)
 );
@@ -34,13 +35,16 @@ builder.Services
 // =========================
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+
+// =========================
+// SESSION (FOR ADS, ETC.)
+// =========================
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-
 
 // =========================
 // COOKIE
@@ -54,20 +58,26 @@ builder.Services.ConfigureApplicationCookie(options =>
 var app = builder.Build();
 
 // =========================
-// SEED ROLES & ADMIN
+// DATABASE INIT (CORRECT ORDER)
 // =========================
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
 
+    var context = services.GetRequiredService<ApplicationDbContext>();
+
+    // 1️⃣ Apply migrations FIRST
+    context.Database.Migrate();
+
+    // 2️⃣ Seed roles
     await DbInitializer.SeedRolesAsync(services);
+
+    // 3️⃣ Seed admin user
     await DbInitializer.SeedAdminAsync(services);
 
-    var context = services.GetRequiredService<ApplicationDbContext>();
-    context.Database.Migrate();
+    // 4️⃣ Seed categories & tags
     ApplicationDbContext.SeedData(context);
 }
-
 
 // =========================
 // MIDDLEWARE
@@ -77,12 +87,14 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseSession();   // ✅ MUST be before Auth
+// ⚠️ Session MUST be before auth
+app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();

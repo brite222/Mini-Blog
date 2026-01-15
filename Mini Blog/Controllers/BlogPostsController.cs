@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniBlog.Data;
 using MiniBlog.Models;
+using System.Security.Claims;
 
 namespace MiniBlog.Controllers
 {
@@ -37,13 +38,21 @@ namespace MiniBlog.Controllers
         {
             var post = await _context.BlogPosts
                 .Include(p => p.Category)
+                .Include(p => p.BlogPostTags)
+                    .ThenInclude(bt => bt.Tag)
+                .Include(p => p.Comments)
+                    .ThenInclude(c => c.User)
+                .Include(p => p.PostLikes)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (post == null)
                 return NotFound();
 
+            ViewBag.TotalLikes = post.PostLikes.Count;
+
             return View(post);
         }
+
 
         // =========================
         // CREATE (ADMIN ONLY)
@@ -227,5 +236,57 @@ namespace MiniBlog.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleLike(int postId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var existingLike = await _context.PostLikes
+                .FirstOrDefaultAsync(l => l.BlogPostId == postId && l.UserId == userId);
+
+            if (existingLike == null)
+            {
+                _context.PostLikes.Add(new PostLike
+                {
+                    BlogPostId = postId,
+                    UserId = userId
+                });
+            }
+            else
+            {
+                _context.PostLikes.Remove(existingLike);
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Details", new { id = postId });
+        }
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddComment(int postId, string content)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+                return RedirectToAction("Details", new { id = postId });
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var comment = new Comment
+            {
+                BlogPostId = postId,
+                Content = content,
+                UserId = userId!,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Comments.Add(comment);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Details", new { id = postId });
+        }
+
+
     }
+
 }

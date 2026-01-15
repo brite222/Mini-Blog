@@ -1,51 +1,73 @@
 ﻿@page
-@model RegisterModel
+@model MiniBlog.Areas.Identity.Pages.Account.RegisterModel
 @{
+    Layout = "/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Register";
 }
 
 <div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-        <div class="card shadow-lg border-0">
+    <div class="col-md-6 col-lg-4">
+
+        <div class="card shadow border-0">
             <div class="card-body p-4">
 
-                <h3 class="text-center mb-4 fw-bold">
-                    ✨ Create Your Account
+                <h3 class="text-center fw-bold mb-4">
+                    ✍️ Create Account
                 </h3>
 
                 <form method="post">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="text-danger mb-3"></div>
 
                     <div class="mb-3">
                         <label asp-for="Input.Email" class="form-label"></label>
-                        <input asp-for="Input.Email" class="form-control" />
-                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        <input asp-for="Input.Email"
+                               class="form-control"
+                               placeholder="Enter your email" />
+                        <span asp-validation-for="Input.Email"
+                              class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="Input.Password" class="form-label"></label>
-                        <input asp-for="Input.Password" class="form-control" />
-                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        <input asp-for="Input.Password"
+                               class="form-control"
+                               placeholder="Create a password" />
+                        <span asp-validation-for="Input.Password"
+                              class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Input.ConfirmPassword" class="form-label"></label>
-                        <input asp-for="Input.ConfirmPassword" class="form-control" />
-                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                        <label asp-for="Input.ConfirmPassword"
+                               class="form-label"></label>
+                        <input asp-for="Input.ConfirmPassword"
+                               class="form-control"
+                               placeholder="Confirm password" />
+                        <span asp-validation-for="Input.ConfirmPassword"
+                              class="text-danger"></span>
                     </div>
 
-                    <button type="submit" class="btn btn-success w-100">
+                    <button type="submit"
+                            class="btn btn-success w-100">
                         Register
                     </button>
+
                 </form>
 
-                <hr />
+                <hr class="my-4" />
 
-                <div class="text-center">
-                    <a asp-page="./Login">Already have an account?</a>
+                <div class="text-center small">
+                    Already have an account?
+                    <a asp-page="./Login">Login</a>
                 </div>
 
             </div>
         </div>
+
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

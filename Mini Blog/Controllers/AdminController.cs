@@ -22,31 +22,46 @@ namespace MiniBlog.Controllers
         }
         [HttpPost]
         [Authorize(Roles = "Admin")]
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UploadAvatar(IFormFile avatar)
         {
             if (avatar == null || avatar.Length == 0)
+            {
+                TempData["Error"] = "Please select an image file.";
                 return RedirectToAction("Dashboard");
+            }
 
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
+            if (user == null)
+                return RedirectToAction("Dashboard");
 
-            var uploads = Path.Combine(
+            // Ensure avatars folder exists
+            var avatarsPath = Path.Combine(
                 Directory.GetCurrentDirectory(),
-                "wwwroot/avatars");
+                "wwwroot",
+                "avatars"
+            );
 
-            Directory.CreateDirectory(uploads);
+            Directory.CreateDirectory(avatarsPath);
 
+            // Generate unique filename
             var fileName = $"{user.Id}{Path.GetExtension(avatar.FileName)}";
-            var filePath = Path.Combine(uploads, fileName);
+            var filePath = Path.Combine(avatarsPath, fileName);
 
-            using var stream = new FileStream(filePath, FileMode.Create);
-            await avatar.CopyToAsync(stream);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await avatar.CopyToAsync(stream);
+            }
 
+            // Save avatar path to user
             user.AvatarUrl = "/avatars/" + fileName;
             await _userManager.UpdateAsync(user);
 
+            TempData["Success"] = "Avatar uploaded successfully!";
             return RedirectToAction("Dashboard");
         }
+
 
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Dashboard()
