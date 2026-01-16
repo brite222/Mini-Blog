@@ -1,6 +1,22 @@
 ﻿@model IEnumerable<MiniBlog.Models.BlogPost>
 
-<h1 class="text-center mb-4">MiniBlog</h1>
+
+
+<!-- HERO HEADER -->
+<section class="hero-banner mb-5">
+    <div class="container text-center py-5">
+        <h1 class="fw-bold mb-2">
+            📝 Welcome To <span class="brand-text">MiniBlog</span>
+            <span class="badge bg-primary ms-2">New</span>
+        </h1>
+
+        <p class="lead text-muted mt-2">
+            News, Events, Entertainment, Lifestyle, Fashion, Beauty,
+            Inspiration and yes... Gossip! ✨
+        </p>
+    </div>
+</section>
+
 
 <!-- FILTER FORM -->
 <form method="get" asp-action="Index" class="row g-2 mb-4 justify-content-center">
@@ -99,44 +115,41 @@
 <!-- PAGINATION -->
 @if (ViewBag.TotalPages > 1)
 {
-    <nav class="d-flex justify-content-center mt-4">
-        <ul class="pagination">
+    <nav class="mt-5">
+        <ul class="pagination justify-content-center">
 
-            <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
-                <a class="page-link"
-                   asp-action="Index"
-                   asp-route-search="@ViewBag.Search"
-                   asp-route-categoryId="@ViewBag.CategoryId"
-                   asp-route-tagId="@ViewBag.TagId"
-                   asp-route-page="@(ViewBag.CurrentPage - 1)">
-                    Previous
-                </a>
-            </li>
+            @if (ViewBag.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-page="@(ViewBag.CurrentPage - 1)">
+                        ← Previous
+                    </a>
+                </li>
+            }
 
             @for (int i = 1; i <= ViewBag.TotalPages; i++)
             {
                 <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
                     <a class="page-link"
                        asp-action="Index"
-                       asp-route-search="@ViewBag.Search"
-                       asp-route-categoryId="@ViewBag.CategoryId"
-                       asp-route-tagId="@ViewBag.TagId"
                        asp-route-page="@i">
                         @i
                     </a>
                 </li>
             }
 
-            <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
-                <a class="page-link"
-                   asp-action="Index"
-                   asp-route-search="@ViewBag.Search"
-                   asp-route-categoryId="@ViewBag.CategoryId"
-                   asp-route-tagId="@ViewBag.TagId"
-                   asp-route-page="@(ViewBag.CurrentPage + 1)">
-                    Next
-                </a>
-            </li>
+            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-page="@(ViewBag.CurrentPage + 1)">
+                        Next →
+                    </a>
+                </li>
+            }
 
         </ul>
     </nav>

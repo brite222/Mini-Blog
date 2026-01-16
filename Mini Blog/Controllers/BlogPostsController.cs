@@ -20,15 +20,21 @@ namespace MiniBlog.Controllers
         // INDEX (PUBLIC)
         // =========================
         [AllowAnonymous]
+
+       
         public async Task<IActionResult> Index()
         {
             var posts = await _context.BlogPosts
                 .Include(p => p.Category)
                 .OrderByDescending(p => p.CreatedAt)
+                .Take(50) // 🔥 50 posts per page
                 .ToListAsync();
 
             return View(posts);
         }
+
+
+
 
         // =========================
         // DETAILS (PUBLIC)
